@@ -19,6 +19,8 @@
 #include "usb_rx.pio.h"
 #include "usb_tx.pio.h"
 
+#include "interval_override.h"
+
 static alarm_pool_t *_alarm_pool = NULL;
 static repeating_timer_t sof_rt;
 static bool timer_active;
@@ -253,7 +255,8 @@ static bool __no_inline_not_in_flash_func(sof_timer)(repeating_timer_t *_rt) {
             }
 
             if (is_periodic) {
-              ep->interval_counter = ep->interval - 1;
+              uint8_t interval_override_local = interval_override;
+              ep->interval_counter = (interval_override_local ? interval_override_local : ep->interval) - 1;
             }
           }
 
@@ -1277,5 +1280,16 @@ static void __no_inline_not_in_flash_func(__pio_usb_host_irq_handler)(uint8_t ro
 
 // weak alias to __pio_usb_host_irq_handler
 void pio_usb_host_irq_handler(uint8_t root_id) __attribute__ ((weak, alias("__pio_usb_host_irq_handler")));
+
+void set_interval_override(uint8_t interval)
+{
+  // we don't enforce powers of two
+  interval_override = interval;
+}
+
+uint8_t get_interval_override()
+{
+  return interval_override;
+}
 
 #pragma GCC pop_options
