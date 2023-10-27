@@ -211,10 +211,15 @@ static int usb_setup_transaction(pio_port_t *pp, endpoint_t *ep);
 static int usb_in_transaction(pio_port_t *pp, endpoint_t *ep);
 static int usb_out_transaction(pio_port_t *pp, endpoint_t *ep);
 
+void tuh_sof_cb();
+
 void __not_in_flash_func(pio_usb_host_frame)(void) {
   if (!timer_active) {
     return;
   }
+
+  tuh_sof_cb();
+
   static uint8_t sof_packet[4] = {USB_SYNC, USB_PID_SOF, 0x00, 0x10};
 
   pio_port_t *pp = PIO_USB_PIO_PORT(0);
