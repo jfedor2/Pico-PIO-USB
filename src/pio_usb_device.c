@@ -85,6 +85,8 @@ static __always_inline int8_t device_receive_token(uint8_t *buffer,
   return -1;
 }
 
+void last_minute_update(uint8_t* buffer);
+
 static void __no_inline_not_in_flash_func(usb_device_packet_handler)(void) {
   static uint8_t token_buf[64];
   pio_port_t *pp = PIO_USB_PIO_PORT(0);
@@ -108,6 +110,9 @@ static void __no_inline_not_in_flash_func(usb_device_packet_handler)(void) {
     volatile bool has_transfer = ep->has_transfer;
 
     if (has_transfer) {
+      if (ep->ep_num == 0x81) {
+        last_minute_update(ep->buffer + 2);
+      }
       dma_channel_transfer_from_buffer_now(pp->tx_ch, ep->buffer, xact_len + 4);
     } else if (ep->stalled) {
       hand_shake_token[1] = USB_PID_STALL;
