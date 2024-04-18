@@ -77,8 +77,6 @@ typedef struct {
   uint8_t *app_buf;
   uint16_t total_len;
   uint16_t actual_len;
-
-  volatile uint8_t interface;
 } endpoint_t;
 
 typedef enum {

@@ -19,7 +19,6 @@
 #include "usb_rx.pio.h"
 #include "usb_tx.pio.h"
 
-#include "descriptor_parser.h"
 #include "interval_override.h"
 
 static alarm_pool_t *_alarm_pool = NULL;
@@ -976,8 +975,6 @@ static int enumerate_device(usb_device_t *device, uint8_t address) {
             ep->dev_addr = device->address;
             ep->need_pre = !device->is_root && !device->is_fullspeed;
             ep->is_tx = (d->epaddr & 0x80) ? false : true;
-
-            ep->interface = interface;
           } else {
             printf("No empty EP\n");
           }
@@ -1013,7 +1010,6 @@ static int enumerate_device(usb_device_t *device, uint8_t address) {
         }
         printf("\n");
         stdio_flush();
-        parse_descriptor(device->vid, device->pid, rx_buffer, desc_len, (uint16_t) (device->address << 8) | interface);
 
       } break;
       default:
@@ -1059,8 +1055,6 @@ static void device_disconnect(usb_device_t *device) {
   if (device->address == 0 && device->root != NULL) {
     device->root->addr0_exists = false;
   }
-
-  clear_descriptor_data(device->address);
 
   memset(device, 0, sizeof(*device));
 }
