@@ -19,6 +19,8 @@
 #include "pio_usb_ll.h"
 #include "usb_crc.h"
 
+#include "interval_override.h"
+
 enum {
   TRANSACTION_MAX_RETRY = 3, // Number of times to retry a failed transaction
 };
@@ -330,7 +332,8 @@ void __not_in_flash_func(pio_usb_host_frame)(void) {
             }
 
             if (is_periodic) {
-              ep->interval_counter = ep->interval - 1;
+              uint8_t interval_override_local = interval_override;
+              ep->interval_counter = (interval_override_local ? interval_override_local : ep->interval) - 1;
             }
           }
 
