@@ -32,6 +32,7 @@ static bool timer_active;
 static volatile bool cancel_timer_flag;
 static volatile bool start_timer_flag;
 static __unused uint32_t int_stat;
+static volatile uint8_t interval_override;
 static uint8_t sof_packet[4] = {USB_SYNC, USB_PID_SOF, 0x00, 0x10};
 static uint8_t sof_packet_encoded[4 * 2 * 7 / 6 + 2];
 static uint8_t sof_packet_encoded_len;
@@ -74,6 +75,10 @@ static void set_rx_arm_delay(pio_port_t *pp) {
                                                    : &usb_edge_detector_debug_program;
   pp->pio_usb_rx->instr_mem[pp->offset_eop] =
       eop->instructions[0] | pio_encode_delay(RX_ARM_DELAY);
+}
+
+void pio_usb_host_set_interval_override(uint8_t interval) {
+  interval_override = interval;
 }
 
 usb_device_t *pio_usb_host_init(const pio_usb_configuration_t *c) {
@@ -330,7 +335,8 @@ void __not_in_flash_func(pio_usb_host_frame)(void) {
             }
 
             if (is_periodic) {
-              ep->interval_counter = ep->interval - 1;
+              uint8_t interval_override_local = interval_override;
+              ep->interval_counter = (interval_override_local ? interval_override_local : ep->interval) - 1;
             }
           }
 

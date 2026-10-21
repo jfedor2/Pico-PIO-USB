@@ -15,6 +15,8 @@ void pio_usb_host_task(void);
 void pio_usb_host_stop(void);
 void pio_usb_host_restart(void);
 uint32_t pio_usb_host_get_frame_number(void);
+// Poll interrupt endpoints every interval frames instead of the declared bInterval, 0 to stop overriding
+void pio_usb_host_set_interval_override(uint8_t interval);
 
 // Call this every 1ms when skip_alarm_pool is true.
 void pio_usb_host_frame(void);
