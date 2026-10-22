@@ -215,6 +215,11 @@ void __no_inline_not_in_flash_func(pio_usb_bus_prepare_receive)(const pio_port_t
   pio_sm_restart(pp->pio_usb_rx, pp->sm_rx);
   pio_sm_exec(pp->pio_usb_rx, pp->sm_rx, pp->rx_reset_instr);
   pio_sm_exec(pp->pio_usb_rx, pp->sm_rx, pp->rx_reset_instr2);
+  // The edge detector sends the decoder a trigger at the EOP of every packet
+  // and the decoder may have been stopped before taking it. If it's still
+  // pending, the decoder would decode a bit off the idle bus as soon as it
+  // starts, and everything it decodes after that would be shifted by a bit.
+  pp->pio_usb_rx->irq = 1u << DECODER_TRIGGER;
   pio_sm_set_enabled(pp->pio_usb_rx, pp->sm_rx, true);
 }
 
