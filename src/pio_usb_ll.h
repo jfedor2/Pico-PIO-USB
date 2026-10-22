@@ -132,6 +132,9 @@ void pio_usb_bus_init(pio_port_t *pp, const pio_usb_configuration_t *c,
 
 void pio_usb_bus_prepare_receive(const pio_port_t *pp);
 int pio_usb_bus_receive_packet_and_handshake(pio_port_t *pp, uint8_t handshake);
+// Host side: receive a data packet and ACK it if it is good, with the ACK
+// preloaded so that it goes out as soon as possible after the EOP.
+int pio_usb_bus_receive_packet_and_ack(pio_port_t *pp);
 void pio_usb_bus_usb_transfer(pio_port_t *pp, uint8_t *data,
                               uint16_t len);
 // Transmit the last packet before an expected reply and release the receiver,
