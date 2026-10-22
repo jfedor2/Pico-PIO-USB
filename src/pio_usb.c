@@ -233,6 +233,14 @@ uint8_t __no_inline_not_in_flash_func(pio_usb_bus_wait_handshake)(pio_port_t* pp
 
       start = get_time_us_32(); // reset timeout when a byte is received
     } else if ((pp->pio_usb_rx->irq & IRQ_RX_COMP_MASK) != 0) {
+      // The edge detector can flag EOP before the decoder has pushed the
+      // last byte, so give it a bit time to arrive before we give up on it.
+      // (1 bit time = 4 * clk_div_xx_tx.div_int cycles, see below)
+      busy_wait_at_least_cycles(4 * (pp->low_speed ? pp->clk_div_ls_tx.div_int
+                                                   : pp->clk_div_fs_tx.div_int));
+      while (idx < 2 && pio_sm_get_rx_fifo_level(pp->pio_usb_rx, pp->sm_rx)) {
+        pp->usb_rx_buffer[idx++] = pio_sm_get(pp->pio_usb_rx, pp->sm_rx) >> 24;
+      }
       break; // exit if we've gotten an EOP
     }
   }
