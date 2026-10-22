@@ -288,9 +288,13 @@ int __no_inline_not_in_flash_func(pio_usb_bus_receive_packet_and_handshake)(
   while (1) {
     if (pio_sm_get_rx_fifo_level(pio_usb_rx, sm_rx)) {
       uint8_t data = pio_sm_get(pio_usb_rx, sm_rx) >> 24;
-      if (idx < rx_buf_len) {
-        usb_rx_buffer[idx] = data;
+      if (idx >= rx_buf_len) {
+        // Longer than any valid packet. The line may be stuck in K (for
+        // example a hub signalling resume), in which case the decoder never
+        // stops producing bytes and we'd never see an EOP.
+        return -1;
       }
+      usb_rx_buffer[idx] = data;
       start = get_time_us_32(); // reset timeout when a byte is received
 
       if (idx >= 2) {
