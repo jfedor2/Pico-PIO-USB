@@ -102,6 +102,7 @@ typedef struct struct_root_port_t {
   volatile bool is_fullspeed;
   volatile bool connected;
   volatile bool suspended;
+  volatile bool resetting; // we drive SE0 for a bus reset
   uint8_t mode;
 
   // register interface
