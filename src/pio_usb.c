@@ -369,6 +369,8 @@ static __always_inline int receive_packet_and_handshake(pio_port_t *pp,
         }
         *tx_instr = tx_start_instr;
         *tx_ctrl_set = tx_enable;
+        // keep the compiler from moving wait_tx_done()'s setup above the start
+        __compiler_memory_barrier();
         pio_usb_tx->irq = IRQ_TX_ALL_MASK; // clear complete flag
         wait_tx_done(pp);
         return idx - 4;
