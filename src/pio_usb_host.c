@@ -359,6 +359,14 @@ void __not_in_flash_func(pio_usb_host_frame)(void) {
         root->suspended = true; // need a bus reset before operating
         root->ints |= PIO_USB_INTS_CONNECT_BITS;
       }
+    } else if (root->initialized && root->suspended && !root->resetting) {
+      // Connected, but not reset yet (the host waits for the connection to
+      // settle first). The SOF loop only checks running ports for a
+      // disconnect, so a device that drops off now (some do, a few times
+      // while powering up) would leave the port marked connected: the host
+      // finds the line in SE0 after its wait and gives up, and no new
+      // connection would ever be reported.
+      connection_check(root);
     }
   }
 
@@ -400,6 +408,7 @@ void pio_usb_host_port_reset_start(uint8_t root_idx) {
 
   // bus is not operating while in reset
   root->suspended = true;
+  root->resetting = true;
 
   // Force line state to SE0
   gpio_set_outover(root->pin_dp,  GPIO_OVERRIDE_LOW);
@@ -420,6 +429,7 @@ void pio_usb_host_port_reset_end(uint8_t root_idx) {
 
   // bus back to operating
   root->suspended = false;
+  root->resetting = false;
 }
 
 void pio_usb_host_close_device(uint8_t root_idx, uint8_t device_address) {
